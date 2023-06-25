@@ -1,25 +1,21 @@
-import axios from 'axios';
-
-const apiKey = 'live_hldqybt1KGScVDrcge8cJWeYNcYsGLcEKM4BamzF5DSxMiBorDxzqPlNkrb6ispV';
-
-axios.defaults.headers.common['x-api-key'] = apiKey;
-
 export function fetchBreeds() {
-  return axios
-    .get('https://api.thecatapi.com/v1/breeds')
-    .then(response => response.data)
-    .catch(error => {
-      console.log(error);
-      throw new Error('Failed to fetch cat breeds.');
-    });
+  return fetch("https://api.thecatapi.com/v1/breeds?api_key=live_FpNqr14ibuI6LbhtLTKWF3gfHUtTBhClGk1engkIBHBe6ltG25VfJpyrkvqzuXmO").then(
+      (response) => {
+          if (!response.ok) {
+              throw new Error(response.status);
+          }
+          return response.json();
+      }
+  );
 }
 
 export function fetchCatByBreed(breedId) {
-  return axios
-    .get(`https://api.thecatapi.com/v1/images/search?breed_ids=${breedId}`)
-    .then(response => response.data)
-    .catch(error => {
-      console.log(error);
-      throw new Error('Failed to fetch cat information.');
-    });
+  return fetch(`https://api.thecatapi.com/v1/images/search?breed_ids=${breedId}&api_key=live_FpNqr14ibuI6LbhtLTKWF3gfHUtTBhClGk1engkIBHBe6ltG25VfJpyrkvqzuXmO`).then(
+      (response) => {
+          if (!response.ok) {
+              throw new Error(response.status);
+          }
+          return response.json();
+      }
+  );
 }

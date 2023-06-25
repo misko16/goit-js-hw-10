@@ -6,12 +6,12 @@ const select = document.querySelector(".breed-select");
 const catInfo = document.querySelector(".cat-info");
 const error = document.querySelector(".error");
 
-
-select.style.display = "none";
-loader.style.display = "none";
 error.style.visibility = "hidden";
+loader.setAttribute(
+  "style",
+  "width: 48px; height: 48px; border: 5px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite;"
+);
 
-fetchBreeds()
 fetchBreeds()
   .then((breeds) => {
     const options = breeds.map((breed) => {
@@ -23,31 +23,46 @@ fetchBreeds()
 
     select.innerHTML = "";
     select.append(...options);
-    select.style.display = "block"; 
-
-    
-    error.style.visibility = "hidden";
+    select.style.display = "block";
+    loader.style.display = "none";
+    new SlimSelect({
+      select: ".breed-select",
+    });
   })
-  .catch((error) => {
-    console.log(error);
+  .catch(() => {
+    Notiflix.Notify.info("Oops! Something went wrong! Try reloading the page!");
     loader.style.display = "none";
   });
 
-
 select.addEventListener("change", () => {
   const breedId = select.value;
-  loader.style.display = "block"; 
-  error.style.visibility = "hidden"; 
+  const name = select.target;
+  loader.style.display = "block";
+  error.style.visibility = "hidden";
 
   fetchCatByBreed(breedId)
     .then((breeds) => {
-
-      loader.style.display = "none"; 
-      error.style.visibility = "hidden"; 
+      const url = breeds[0].url;
+      const img = document.createElement("img");
+      img.src = url;
+      img.width = 300;
+      const breedNameEl = document.createElement("h2");
+      breedNameEl.textContent = breeds[0].breeds[0].name;
+      const descriptionEl = document.createElement("p");
+      descriptionEl.textContent = breeds[0].breeds[0].description;
+      const temperamentEl = document.createElement("p");
+      temperamentEl.textContent = breeds[0].breeds[0].temperament;
+      catInfo.innerHTML = "";
+      catInfo.appendChild(img);
+      catInfo.appendChild(breedNameEl);
+      catInfo.appendChild(descriptionEl);
+      catInfo.appendChild(temperamentEl);
+      loader.style.display = "none";
+      error.style.visibility = "hidden";
     })
     .catch(() => {
       Notiflix.Notify.info("Oops! Something went wrong! Try reloading the page!");
       loader.style.display = "none";
-      error.style.visibility = "visible"; 
+      error.style.visibility = "visible";
     });
 });
