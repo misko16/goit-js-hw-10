@@ -1,68 +1,58 @@
-import Notiflix from "notiflix";
-import { fetchBreeds, fetchCatByBreed } from "./cat-api";
+import Notiflix from 'notiflix';
+import SlimSelect from 'slim-select';
+import { fetchBreeds, fetchCatByBreed } from './fetch.js';
 
-const loader = document.querySelector(".loader");
-const select = document.querySelector(".breed-select");
-const catInfo = document.querySelector(".cat-info");
-const error = document.querySelector(".error");
+// new SlimSelect({
+//   select: '#selectElement'
+// })
 
-error.style.visibility = "hidden";
-loader.setAttribute(
-  "style",
-  "width: 48px; height: 48px; border: 5px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite;"
-);
+const select = document.querySelector('.breed-select');
+const loader = document.querySelector('.loader');
+const errorEl = document.querySelector('.error');
+let catInfo = document.querySelector('.cat-info');
 
 fetchBreeds()
-  .then((breeds) => {
-    const options = breeds.map((breed) => {
-      const option = document.createElement("option");
-      option.value = breed.id;
-      option.textContent = breed.name;
-      return option;
-    });
-
-    select.innerHTML = "";
-    select.append(...options);
-    select.style.display = "block";
-    loader.style.display = "none";
-    new SlimSelect({
-      select: ".breed-select",
-    });
+  .then(data => makeOptions(data))
+  .catch(err => {
+    Notiflix.Notify.failure(err.message);
+    errorEl.classList.remove('hidden');
   })
-  .catch(() => {
-    Notiflix.Notify.info("Oops! Something went wrong! Try reloading the page!");
-    loader.style.display = "none";
+  .finally(() => loader.classList.add('hidden'));
+
+function makeOptions(items) {
+  let listOptions = items.map(item => {
+    let cat = document.createElement('option');
+    cat.setAttribute('value', item.id);
+    cat.textContent = item.name;
+
+    return cat;
   });
+  //console.log(listOptions);
+  errorEl.classList.add('hidden');
+  select.append(...listOptions);
+  select.classList.remove('hidden');
+}
 
-select.addEventListener("change", () => {
-  const breedId = select.value;
-  const name = select.target;
-  loader.style.display = "block";
-  error.style.visibility = "hidden";
+select.addEventListener('change', changeValue);
 
-  fetchCatByBreed(breedId)
-    .then((breeds) => {
-      const url = breeds[0].url;
-      const img = document.createElement("img");
-      img.src = url;
-      img.width = 300;
-      const breedNameEl = document.createElement("h2");
-      breedNameEl.textContent = breeds[0].breeds[0].name;
-      const descriptionEl = document.createElement("p");
-      descriptionEl.textContent = breeds[0].breeds[0].description;
-      const temperamentEl = document.createElement("p");
-      temperamentEl.textContent = breeds[0].breeds[0].temperament;
-      catInfo.innerHTML = "";
-      catInfo.appendChild(img);
-      catInfo.appendChild(breedNameEl);
-      catInfo.appendChild(descriptionEl);
-      catInfo.appendChild(temperamentEl);
-      loader.style.display = "none";
-      error.style.visibility = "hidden";
+function changeValue(event) {
+  loader.classList.remove('hidden');
+  catInfo.innerHTML = '';
+  errorEl.classList.add('hidden');
+  fetchCatByBreed(event.target.value)
+    .then(data => createMarkup(data))
+    .catch(err => {
+      Notiflix.Notify.failure(err.message);
+      errorEl.classList.remove('hidden');
     })
-    .catch(() => {
-      Notiflix.Notify.info("Oops! Something went wrong! Try reloading the page!");
-      loader.style.display = "none";
-      error.style.visibility = "visible";
-    });
-});
+    .finally(() => loader.classList.add('hidden'));
+}
+
+function createMarkup(cat) {
+  const url = cat[0].url;
+  const { name, temperament, description } = cat[0].breeds[0];
+  const markup = `<img width='300' src='${url}'/><div class='description'>
+    <h1 class='name'>${name}</h1><p>${description}</p>
+    <p class='temperament'><b>Temperament: </b>${temperament}</p></div>`;
+  catInfo.innerHTML = markup;
+}
